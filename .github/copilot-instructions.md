@@ -26,3 +26,15 @@ Notes:
 - Implement advanced `lseek()` usage and dynamic buffer management when shifting bytes to avoid data loss — use `malloc()`/`free()` for temporary buffers and ensure consistent error handling.
 - Use `fstat()` to obtain inode metadata for the `m` command; format permissions and timestamps for human-readable output.
 - Maintain a sequential in-memory clipboard for `y`/`x` operations; ensure clipboard state is preserved only while the editor runs (or persist if explicitly required).
+
+# DESIGN QUESTIONS
+
+* Integration: integrated with existing `shell.h` and `main.c` usage.
+* Line numbering: user commands are 1-based.
+* Max line length: dynamic allocation for arbitrarily long lines.
+* Clipboard persistence: in-memory only.
+* Concurrency: single-threaded (no concurrent modification handling).
+* Error handling policy: fail-fast with clear error messages.
+* Unicode: simplest semantics (byte-wise/UTF-8 best-effort).
+* Testing: no unit tests required.
+* Data structure: linked list of words per line inside a linked list of lines.
