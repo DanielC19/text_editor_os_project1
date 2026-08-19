@@ -129,8 +129,8 @@ Command commands[] = {
 
     /* --- Categoría: Editor de texto --- */
     {
-        "o", "editor",
-        "o <archivo>",
+        "editor", "editor",
+        "editor <archivo>",
         "Abre un archivo para edición en memoria.",
         "open(2), read(2), close(2)",
         cmd_open_text_editor

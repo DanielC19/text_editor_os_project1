@@ -38,34 +38,29 @@ typedef struct {
 } clipboard_t;
 
 // Global editor state
-static editor_file_t g_file = { .fd = -1, .path = NULL, .size = 0, .lines = NULL, .line_count = 0 };
+static editor_file_t global_state = { .fd = -1, .path = NULL, .size = 0, .lines = NULL, .line_count = 0 };
 static clipboard_t g_clipboard = { .last_copied = NULL };
 
-/* -- Minimal stub implementations -- */
-int cmd_open_text_editor(int argc, char **argv)
-{
-	/* TODO: implement open() with O_RDWR|O_CREAT and initialize ef
-	 * Behavior notes (from your answers):
-	 * - integrate with existing shell.h / main.c calling conventions
-	 * - open with O_RDWR | O_CREAT, use dynamic allocations for path
-	 * - set ef->lines to NULL and ef->line_count = 0 initially
-	 */
-	errno = ENOSYS;
-	return -1;
-}
+static int parse_line_editor(const char *line);
 
 int te_close(editor_file_t *ef)
 {
-	/* TODO: close fd, free path, and free lines/words structures */
-	(void)ef;
+	global_state.fd = -1;
+
 	return 0;
 }
 
 int te_open(const char *arg)
 {
-	/* parse and call editor_open_file */
-	(void)arg;
-	printf("[TODO] open: %s\n", arg ? arg : "(null)");
+	global_state.fd = open(arg, O_RDWR | O_CREAT, 0644);
+
+	return 0;
+}
+
+int te_save(editor_file_t *ef)
+{
+	(void)ef;
+	printf("[TODO] save\n");
 	return 0;
 }
 
@@ -122,4 +117,82 @@ int te_paste(const char *arg)
 	(void)arg;
 	printf("[TODO] paste at: %s\n", arg ? arg : "");
 	return 0;
+}
+
+int parse_line_editor(const char *line)
+{
+	static char *argv[10];
+	char buffer[256];
+	int argc = 0;
+
+	strncpy(buffer, line, sizeof(buffer) - 1);
+	buffer[sizeof(buffer) - 1] = '\0';
+
+	char *token = strtok(buffer, " \t\n");
+	while (token != NULL && argc < 10) {
+		argv[argc++] = token;
+		token = strtok(NULL, " \t\n");
+	}
+
+	if (argc == 0) return 0;
+
+	const char *cmd = argv[0];
+
+	if (strcmp(cmd, "q") == 0) {
+		te_close(&global_state);
+	} else if (strcmp(cmd, "w") == 0) {
+		te_save(&global_state);
+	} else if (strcmp(cmd, "p") == 0) {
+		te_print(argc > 1 ? argv[1] : NULL);
+	} else if (strcmp(cmd, "a") == 0) {
+		te_append(argc > 1 ? argv[1] : NULL);
+	} else if (strcmp(cmd, "d") == 0) {
+		te_delete(argc > 1 ? argv[1] : NULL);
+	} else if (strcmp(cmd, "i") == 0) {
+		te_insert(argc > 1 ? argv[1] : NULL, argc > 2 ? argv[2] : NULL);
+	} else if (strcmp(cmd, "s") == 0) {
+		te_search(argc > 1 ? argv[1] : NULL);
+	} else if (strcmp(cmd, "m") == 0) {
+		te_metadata();
+	} else if (strcmp(cmd, "y") == 0) {
+		te_copy(argc > 1 ? argv[1] : NULL);
+	} else if (strcmp(cmd, "x") == 0) {
+		te_paste(argc > 1 ? argv[1] : NULL);
+	} else {
+		printf("Unknown command: %s\n", cmd);
+	}
+
+	return argc;
+}
+
+int cmd_open_text_editor(int argc, char **argv)
+{
+	char line[256];
+
+	if (argc < 2) {
+		printf("Error: Se requiere un nombre de archivo para abrir.\n");
+		return -1;
+	}
+	const char *filename = argv[1];
+	te_open(filename);
+
+	while (global_state.fd != -1) {
+        /* Imprimir prompt cian interactivo */
+        printf("\033[1;36m editor> " COLOR_RESET);
+        fflush(stdout); /* Asegurar que se muestre en pantalla antes de bloquear en fgets */
+
+        /* Leer línea de entrada. Retorna NULL en EOF (Ctrl+D) */
+        if (fgets(line, sizeof(line), stdin) == NULL) {
+            printf("\n");
+            break;
+        }
+
+        /* Tokenizar línea leída */
+        int argc = parse_line_editor(line);
+        if (argc == 0) {
+            continue; /* Ignorar comandos vacíos */
+        }
+	}
+
+    return 0;
 }
