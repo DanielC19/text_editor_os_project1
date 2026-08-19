@@ -93,6 +93,7 @@ int cmd_despedir(int argc, char **argv);  /* Syscalls: getuid */
 int cmd_hora(int argc, char **argv);      /* Syscalls: time */
 int cmd_fecha(int argc, char **argv);     /* Syscalls: time */
 
-int cmd_clonar(int argc, char **argv);    /* Syscalls: open, read, write, close */
+/* --- Categoría: Editor de texto (cat_text_editor.c) --- */
+int cmd_open_text_editor(int argc, char **argv);
 
 #endif /* SHELL_H */

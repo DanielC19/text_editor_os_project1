@@ -16,84 +16,84 @@
 Command commands[] = {
     /* --- Categoría: Datos --- */
     {
-        "d_create", "datos", 
-        "d_create <archivo> \"<texto>\"", 
+        "d_create", "datos",
+        "d_create <archivo> \"<texto>\"",
         "Crea un archivo escribiendo un texto en él.",
-        "open(2), write(2), close(2)", 
+        "open(2), write(2), close(2)",
         cmd_d_create
     },
     {
-        "d_read", "datos", 
-        "d_read <archivo>", 
+        "d_read", "datos",
+        "d_read <archivo>",
         "Lee y muestra el contenido de un archivo.",
-        "open(2), read(2), close(2)", 
+        "open(2), read(2), close(2)",
         cmd_d_read
     },
     {
-        "d_info", "datos", 
-        "d_info <archivo>", 
+        "d_info", "datos",
+        "d_info <archivo>",
         "Muestra metadatos detallados de un archivo.",
-        "stat(2)", 
+        "stat(2)",
         cmd_d_info
     },
     {
-        "d_copy", "datos", 
-        "d_copy <origen> <destino>", 
+        "d_copy", "datos",
+        "d_copy <origen> <destino>",
         "Copia recursiva o lineal de bytes entre archivos.",
-        "open(2), read(2), write(2), close(2)", 
+        "open(2), read(2), write(2), close(2)",
         cmd_d_copy
     },
 
     /* --- Categoría: Memoria --- */
     {
-        "m_sbrk", "memoria", 
-        "m_sbrk <incremento_bytes>", 
+        "m_sbrk", "memoria",
+        "m_sbrk <incremento_bytes>",
         "Modifica el program break de la sección heap.",
-        "sbrk(2) / brk(2)", 
+        "sbrk(2) / brk(2)",
         cmd_m_sbrk
     },
     {
-        "m_mmap", "memoria", 
-        "m_mmap <tamaño_bytes>", 
+        "m_mmap", "memoria",
+        "m_mmap <tamaño_bytes>",
         "Mapea una zona de memoria anónima y escribe un patrón.",
-        "mmap(2), munmap(2)", 
+        "mmap(2), munmap(2)",
         cmd_m_mmap
     },
     {
-        "m_info", "memoria", 
-        "m_info", 
+        "m_info", "memoria",
+        "m_info",
         "Muestra el estado del mapa de memoria del proceso actual.",
-        "Lectura directa de /proc/self/status", 
+        "Lectura directa de /proc/self/status",
         cmd_m_info
     },
 
     /* --- Categoría: Monitoreo/Procesos --- */
     {
-        "p_fork", "monitoreo", 
-        "p_fork", 
+        "p_fork", "monitoreo",
+        "p_fork",
         "Crea un proceso hijo, demuestra sincronización y códigos de salida.",
-        "fork(2), getpid(2), getppid(2), waitpid(2)", 
+        "fork(2), getpid(2), getppid(2), waitpid(2)",
         cmd_p_fork
     },
     {
-        "p_exec", "monitoreo", 
-        "p_exec <comando> [argumentos...]", 
+        "p_exec", "monitoreo",
+        "p_exec <comando> [argumentos...]",
         "Crea un proceso hijo y ejecuta un comando externo del sistema.",
-        "fork(2), execvp(3), waitpid(2)", 
+        "fork(2), execvp(3), waitpid(2)",
         cmd_p_exec
     },
     {
-        "p_kill", "monitoreo", 
-        "p_kill <pid> <numero_señal>", 
+        "p_kill", "monitoreo",
+        "p_kill <pid> <numero_señal>",
         "Envía una señal específica a un proceso en ejecución.",
-        "kill(2)", 
+        "kill(2)",
         cmd_p_kill
     },
     {
-        "p_monitor", "monitoreo", 
-        "p_monitor", 
+        "p_monitor", "monitoreo",
+        "p_monitor",
         "Muestra el uso detallado de recursos de la CPU y memoria del shell.",
-        "getrusage(2)", 
+        "getrusage(2)",
         cmd_p_monitor
     },
 
@@ -126,12 +126,77 @@ Command commands[] = {
         "time(2)",
         cmd_fecha
     },
+
+    /* --- Categoría: Editor de texto --- */
     {
-        "clonar", "utilidades",
-        "clonar <archivo>",
-        "Crea una copia del archivo especificado con extensión .clone.",
-        "open(2), read(2), write(2), close(2)",
-        cmd_clonar
+        "o", "editor",
+        "o <archivo>",
+        "Abre un archivo para edición en memoria.",
+        "open(2), read(2), close(2)",
+        cmd_open_text_editor
+    },
+    {
+        "p", "editor",
+        "p [n]",
+        "Imprime la línea n o todo el contenido del archivo.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "a", "editor",
+        "a <texto>",
+        "Agrega una nueva línea con el texto especificado al final del archivo.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "d", "editor",
+        "d <n>",
+        "Elimina la línea n del archivo en memoria.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "i", "editor",
+        "i <n> <texto>",
+        "Inserta una nueva línea con el texto especificado en la posición n.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "s", "editor",
+        "s <palabra>",
+        "Busca la palabra especificada en el archivo y muestra las líneas que la contienen.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "m", "editor",
+        "m",
+        "Muestra metadatos del archivo actualmente abierto en memoria.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "y", "editor",
+        "y <n>",
+        "Copia la línea n al portapapeles interno del editor.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "x", "editor",
+        "x <n>",
+        "Pega la línea más recientemente copiada en la posición n del archivo.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "q", "editor",
+        "q",
+        "Cierra el editor y descarta cualquier cambio no guardado.",
+        "printf(3)",
+        NULL
     }
 };
 
@@ -142,7 +207,7 @@ const int num_commands = sizeof(commands) / sizeof(commands[0]);
  * ====================================================================================
  * ANALIZADOR DE LÍNEA DE COMANDOS (TOKENIZADOR)
  * ====================================================================================
- * Esta función toma la línea de entrada introducida por el usuario y la divide en 
+ * Esta función toma la línea de entrada introducida por el usuario y la divide en
  * argumentos individuales. Soporta comillas dobles (") para permitir argumentos
  * que contienen espacios en blanco, como en: d_create archivo.txt "Este es el texto"
  *
@@ -213,6 +278,7 @@ void print_help(const char *arg) {
         printf("  " COLOR_CATEGORY "memoria" COLOR_RESET "    - Comandos de control de heap y memoria (sbrk, mmap, ...)\n");
         printf("  " COLOR_CATEGORY "monitoreo" COLOR_RESET "  - Comandos de procesos, señales y recursos (fork, exec, kill, getrusage)\n");
         printf("  " COLOR_CATEGORY "utilidades" COLOR_RESET " - Comandos útiles del sistema (saludar, hora, fecha, despedir)\n\n");
+        printf("  " COLOR_CATEGORY "editor" COLOR_RESET "     - Comandos para editar texto (open, print, append, delete, insert, search, metadata, copy, paste)\n\n");
         printf("Uso general:\n");
         printf("  " COLOR_PROMPT "help <categoria>" COLOR_RESET "  - Muestra comandos específicos de una categoría.\n");
         printf("  " COLOR_PROMPT "help <comando>" COLOR_RESET "    - Explica el uso y las syscalls de un comando específico.\n");
@@ -222,8 +288,10 @@ void print_help(const char *arg) {
     }
 
     /* Caso 2: El usuario escribió 'help <categoria>': Mostrar comandos del grupo */
-    if (strcmp(arg, "datos") == 0 || strcmp(arg, "memoria") == 0 || 
-        strcmp(arg, "monitoreo") == 0 || strcmp(arg, "utilidades") == 0) {
+    if (strcmp(arg, "datos") == 0 || strcmp(arg, "memoria") == 0 ||
+        strcmp(arg, "monitoreo") == 0 || strcmp(arg, "utilidades") == 0 ||
+        strcmp(arg, "editor") == 0
+    ) {
         printf(COLOR_TITLE "\n--- Categoría: %s ---\n" COLOR_RESET, arg);
         for (int i = 0; i < num_commands; i++) {
             if (strcmp(commands[i].category, arg) == 0) {
