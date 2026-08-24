@@ -142,13 +142,13 @@ int parse_line_editor(const char *line)
 		te_close(&global_state);
 	} else if (strcmp(cmd, "w") == 0) {
 		te_save(&global_state);
-	} else if (strcmp(cmd, "p") == 0) {
+	} else if (strcmp(cmd, "p") == 0) { //Print line n or all lines
 		te_print(argc > 1 ? argv[1] : NULL);
-	} else if (strcmp(cmd, "a") == 0) {
+	} else if (strcmp(cmd, "a") == 0) {//Append text to end of file
 		te_append(argc > 1 ? argv[1] : NULL);
-	} else if (strcmp(cmd, "d") == 0) {
+	} else if (strcmp(cmd, "d") == 0) {//Delete line n
 		te_delete(argc > 1 ? argv[1] : NULL);
-	} else if (strcmp(cmd, "i") == 0) {
+	} else if (strcmp(cmd, "i") == 0) { //Insert at line n
 		te_insert(argc > 1 ? argv[1] : NULL, argc > 2 ? argv[2] : NULL);
 	} else if (strcmp(cmd, "s") == 0) {
 		te_search(argc > 1 ? argv[1] : NULL);
