@@ -42,6 +42,8 @@ static editor_file_t global_state = { .fd = -1, .path = NULL, .size = 0, .lines 
 static clipboard_t g_clipboard = { .last_copied = NULL };
 
 static int parse_line_editor(const char *line);
+static void line_free(line_node_t *line);
+static line_node_t *line_create_from_text(const char *text);
 
 int te_close(editor_file_t *ef)
 {
@@ -64,31 +66,242 @@ int te_save(editor_file_t *ef)
 	return 0;
 }
 
+static void print_line_words(const line_node_t *line)
+{
+	const word_node_t *w = line->words;
+	int first = 1;
+
+	while (w != NULL) {
+		if (!first)
+			printf(" ");
+		printf("%s", w->word ? w->word : "");
+		first = 0;
+		w = w->next;
+	}
+	printf("\n");
+}
+
+/* Print line n (1-based). Without arg, walk the whole line list. */
 int te_print(const char *arg)
 {
-	(void)arg;
-	printf("[TODO] print: %s\n", arg ? arg : "(all)");
+	line_node_t *cur = global_state.lines;
+	size_t idx = 1;
+
+	if (arg == NULL || *arg == '\0') {
+		while (cur != NULL) {
+			printf("%zu\t", idx);
+			print_line_words(cur);
+			cur = cur->next;
+			idx++;
+		}
+		return 0;
+	}
+
+	char *end = NULL;
+	long n = strtol(arg, &end, 10);
+	if (end == arg || *end != '\0' || n < 1) {
+		printf("Error: número de línea inválido: %s\n", arg);
+		return -1;
+	}
+	if (global_state.line_count == 0 || (size_t)n > global_state.line_count) {
+		printf("Error: línea %ld fuera de rango (máx. %zu)\n",
+		       n, global_state.line_count);
+		return -1;
+	}
+
+	while (cur != NULL && idx < (size_t)n) {
+		cur = cur->next;
+		idx++;
+	}
+	if (cur == NULL) {
+		printf("Error: línea %ld no encontrada\n", n);
+		return -1;
+	}
+	printf("%ld\t", n);
+	print_line_words(cur);
 	return 0;
 }
 
+/* Append text as a new last line. Empty buffer -> that line becomes the first. */
 int te_append(const char *text)
 {
-	(void)text;
-	printf("[TODO] append: %s\n", text ? text : "(empty)");
+	line_node_t *new_line = line_create_from_text(text);
+
+	if (!new_line) {
+		printf("Error: no hay memoria para agregar la línea\n");
+		return -1;
+	}
+
+	if (global_state.lines == NULL) {
+		global_state.lines = new_line;
+	} else {
+		line_node_t *tail = global_state.lines;
+
+		while (tail->next != NULL)
+			tail = tail->next;
+		tail->next = new_line;
+	}
+	global_state.line_count++;
 	return 0;
 }
 
+/* Delete line n (1-based). Subsequent lines shift up. Disk write is still te_save's job. */
 int te_delete(const char *arg)
 {
-	(void)arg;
-	printf("[TODO] delete line: %s\n", arg ? arg : "(none)");
+	char *end = NULL;
+	long n;
+	line_node_t *victim;
+	size_t i;
+
+	if (arg == NULL || *arg == '\0') {
+		printf("Error: uso: d <n>\n");
+		return -1;
+	}
+
+	n = strtol(arg, &end, 10);
+	if (end == arg || *end != '\0' || n < 1) {
+		printf("Error: número de línea inválido: %s\n", arg);
+		return -1;
+	}
+	if (global_state.line_count == 0 || (size_t)n > global_state.line_count) {
+		printf("Error: línea %ld fuera de rango (máx. %zu)\n",
+		       n, global_state.line_count);
+		return -1;
+	}
+
+	if (n == 1) {
+		victim = global_state.lines;
+		global_state.lines = victim->next;
+	} else {
+		line_node_t *prev = global_state.lines;
+
+		for (i = 1; i < (size_t)n - 1; i++)
+			prev = prev->next;
+		victim = prev->next;
+		prev->next = victim->next;
+	}
+
+	victim->next = NULL;
+	line_free(victim);
+	global_state.line_count--;
 	return 0;
 }
 
+static word_node_t *word_create(const char *s)
+{
+	word_node_t *w = malloc(sizeof(*w));
+	if (!w) return NULL;
+
+	size_t len = strlen(s);
+	w->word = malloc(len + 1);
+	if (!w->word) {
+		free(w);
+		return NULL;
+	}
+	memcpy(w->word, s, len + 1);
+	w->next = NULL;
+	return w;
+}
+
+static void line_free(line_node_t *line)
+{
+	if (!line) return;
+	word_node_t *w = line->words;
+	while (w) {
+		word_node_t *next = w->next;
+		free(w->word);
+		free(w);
+		w = next;
+	}
+	free(line);
+}
+
+/* Build a line whose words are the tokens of `text` (spaces/tabs). Empty text -> empty line. */
+static line_node_t *line_create_from_text(const char *text)
+{
+	line_node_t *line = malloc(sizeof(*line));
+	if (!line) return NULL;
+	line->words = NULL;
+	line->next = NULL;
+
+	if (!text || *text == '\0')
+		return line;
+
+	char *copy = malloc(strlen(text) + 1);
+	if (!copy) {
+		free(line);
+		return NULL;
+	}
+	memcpy(copy, text, strlen(text) + 1);
+
+	word_node_t *tail = NULL;
+	char *tok = strtok(copy, " \t");
+	while (tok != NULL) {
+		word_node_t *w = word_create(tok);
+		if (!w) {
+			free(copy);
+			line_free(line);
+			return NULL;
+		}
+		if (line->words == NULL)
+			line->words = w;
+		else
+			tail->next = w;
+		tail = w;
+		tok = strtok(NULL, " \t");
+	}
+	free(copy);
+	return line;
+}
+
+
+
+/* Insert `text` as a new line at 1-based index n (existing lines n..end shift down).
+ * Valid n is 1 .. line_count+1 (the latter appends). Disk write is still te_save's job. */
 int te_insert(const char *arg1, const char *arg2)
 {
-	(void)arg1; (void)arg2;
-	printf("[TODO] insert at %s: %s\n", arg1 ? arg1 : "?", arg2 ? arg2 : "");
+
+	char *end = NULL;
+	long n;
+	line_node_t *new_line;
+
+	if (arg1 == NULL || *arg1 == '\0') {
+		printf("Error: uso: i <n> [texto]\n");
+		return -1;
+	}
+
+	n = strtol(arg1, &end, 10);
+	if (end == arg1 || *end != '\0' || n < 1) {
+		printf("Error: número de línea inválido: %s\n", arg1);
+		return -1;
+	}
+
+	if ((size_t)n > global_state.line_count + 1) {
+		printf("Error: línea %ld fuera de rango (máx. %zu)\n",
+		       n, global_state.line_count + 1);
+		return -1;
+	}
+
+	new_line = line_create_from_text(arg2);
+	if (!new_line) {
+		printf("Error: no hay memoria para insertar la línea\n");
+		return -1;
+	}
+
+	if (n == 1) {
+		new_line->next = global_state.lines;
+		global_state.lines = new_line;
+	} else {
+		line_node_t *prev = global_state.lines;
+		long i;
+
+		for (i = 1; i < n - 1; i++)
+			prev = prev->next;
+		new_line->next = prev->next;
+		prev->next = new_line;
+	}
+
+	global_state.line_count++;
 	return 0;
 }
 
@@ -144,12 +357,46 @@ int parse_line_editor(const char *line)
 		te_save(&global_state);
 	} else if (strcmp(cmd, "p") == 0) { //Print line n or all lines
 		te_print(argc > 1 ? argv[1] : NULL);
-	} else if (strcmp(cmd, "a") == 0) {//Append text to end of file
-		te_append(argc > 1 ? argv[1] : NULL);
+	} else if (strcmp(cmd, "a") == 0) { /* Append as last line: a [texto...] */
+		char text[256];
+		text[0] = '\0';
+		if (argc > 1) {
+			size_t used = 0;
+			int i;
+			for (i = 1; i < argc; i++) {
+				size_t tok_len = strlen(argv[i]);
+				if (i > 1) {
+					if (used + 1 >= sizeof(text)) break;
+					text[used++] = ' ';
+					text[used] = '\0';
+				}
+				if (used + tok_len >= sizeof(text)) break;
+				memcpy(text + used, argv[i], tok_len + 1);
+				used += tok_len;
+			}
+		}
+		te_append(argc > 1 ? text : NULL);
 	} else if (strcmp(cmd, "d") == 0) {//Delete line n
 		te_delete(argc > 1 ? argv[1] : NULL);
-	} else if (strcmp(cmd, "i") == 0) { //Insert at line n
-		te_insert(argc > 1 ? argv[1] : NULL, argc > 2 ? argv[2] : NULL);
+	} else if (strcmp(cmd, "i") == 0) { /* Insert at line n: i <n> [texto...] */
+		char text[256];
+		text[0] = '\0';
+		if (argc > 2) {
+			size_t used = 0;
+			int i;
+			for (i = 2; i < argc; i++) {
+				size_t tok_len = strlen(argv[i]);
+				if (i > 2) {
+					if (used + 1 >= sizeof(text)) break;
+					text[used++] = ' ';
+					text[used] = '\0';
+				}
+				if (used + tok_len >= sizeof(text)) break;
+				memcpy(text + used, argv[i], tok_len + 1);
+				used += tok_len;
+			}
+		}
+		te_insert(argc > 1 ? argv[1] : NULL, argc > 2 ? text : NULL);
 	} else if (strcmp(cmd, "s") == 0) {
 		te_search(argc > 1 ? argv[1] : NULL);
 	} else if (strcmp(cmd, "m") == 0) {
@@ -185,7 +432,7 @@ int cmd_open_text_editor(int argc, char **argv)
         if (fgets(line, sizeof(line), stdin) == NULL) {
             printf("\n");
             break;
-        }
+        }	
 
         /* Tokenizar línea leída */
         int argc = parse_line_editor(line);
