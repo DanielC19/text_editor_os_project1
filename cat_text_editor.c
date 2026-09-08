@@ -739,8 +739,51 @@ static int te_insert(const char *arg1, const char *arg2)
 
 static int te_search(const char *word)
 {
-    (void)word;
-    printf("[TODO] search: %s\n", word ? word : "");
+    line_node_t *cur;
+    size_t line_no = 1;
+    int found_any = 0;
+
+    if (word == NULL || *word == '\0')
+    {
+        printf("Error: usage: s <palabra>\n");
+        return -1;
+    }
+
+    cur = global_state.lines;
+    while (cur != NULL)
+    {
+        word_node_t *w = cur->words;
+        int count_in_line = 0;
+
+        while (w != NULL)
+        {
+            if (w->word != NULL && strcmp(w->word, word) == 0)
+            {
+                count_in_line++;
+            }
+            w = w->next;
+        }
+
+        if (count_in_line > 0)
+        {
+            printf("Found '%s' in line %zu (%d time%s)\n",
+                   word,
+                   line_no,
+                   count_in_line,
+                   count_in_line == 1 ? "" : "s");
+            found_any = 1;
+        }
+
+        cur = cur->next;
+        line_no++;
+    }
+
+    if (!found_any)
+    {
+        printf("Word '%s' not found.\n", word);
+        return 1;
+    }
+
     return 0;
 }
 

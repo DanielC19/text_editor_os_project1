@@ -145,7 +145,7 @@ Command commands[] = {
      NULL},
     {"x", "editor",
      "x <destino>",
-     "Pega el último archivo del portapapeles en la ruta destino (sobrescribe y preserva permisos).",
+     "Pega el último archivo del portapapeles en la ruta destino.",
      "open(2), read(2), write(2), stat(2), fstat(2), fchmod(2), close(2)",
      NULL},
     {"q", "editor",
