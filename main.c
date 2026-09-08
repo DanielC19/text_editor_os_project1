@@ -136,7 +136,7 @@ Command commands[] = {
     {"m", "editor",
      "m",
      "Muestra metadatos del archivo actualmente abierto en memoria.",
-     "printf(3)",
+     "fstat(2)",
      NULL},
     {"y", "editor",
      "y <archivo_origen>",

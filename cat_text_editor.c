@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 #define COLOR_RESET "\033[0m"
 
@@ -789,7 +790,27 @@ static int te_search(const char *word)
 
 static int te_metadata(void)
 {
-    printf("[TODO] metadata\n");
+    struct stat st;
+
+    if (global_state.fd == -1 || global_state.path == NULL)
+    {
+        printf("Error: no file open. Use 'editor <archivo>' first.\n");
+        return -1;
+    }
+
+    if (fstat(global_state.fd, &st) == -1)
+    {
+        perror("Error reading file metadata");
+        return -1;
+    }
+
+    printf("--- File Metadata ---\n");
+    printf("Path: %s\n", global_state.path);
+    printf("Size: %ld bytes\n", (long)st.st_size);
+    printf("Permissions (octal): %o\n", st.st_mode & 0777);
+    printf("Inode: %ld\n", (long)st.st_ino);
+    printf("Modified: %s", ctime(&st.st_mtime));
+    printf("---------------------\n");
     return 0;
 }
 
