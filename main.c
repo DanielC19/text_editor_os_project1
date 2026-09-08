@@ -20,29 +20,22 @@ Command commands[] = {
         "d_create <archivo> \"<texto>\"",
         "Crea un archivo escribiendo un texto en él.",
         "open(2), write(2), close(2)",
-        cmd_d_create
-    },
-    {
-        "d_read", "datos",
-        "d_read <archivo>",
-        "Lee y muestra el contenido de un archivo.",
-        "open(2), read(2), close(2)",
-        cmd_d_read
-    },
-    {
-        "d_info", "datos",
-        "d_info <archivo>",
-        "Muestra metadatos detallados de un archivo.",
-        "stat(2)",
-        cmd_d_info
-    },
-    {
-        "d_copy", "datos",
-        "d_copy <origen> <destino>",
-        "Copia recursiva o lineal de bytes entre archivos.",
-        "open(2), read(2), write(2), close(2)",
-        cmd_d_copy
-    },
+        cmd_d_create},
+    {"d_read", "datos",
+     "d_read <archivo>",
+     "Lee y muestra el contenido de un archivo.",
+     "open(2), read(2), close(2)",
+     cmd_d_read},
+    {"d_info", "datos",
+     "d_info <archivo>",
+     "Muestra metadatos detallados de un archivo.",
+     "stat(2)",
+     cmd_d_info},
+    {"d_copy", "datos",
+     "d_copy <origen> <destino>",
+     "Copia recursiva o lineal de bytes entre archivos.",
+     "open(2), read(2), write(2), close(2)",
+     cmd_d_copy},
 
     /* --- Categoría: Memoria --- */
     {
@@ -50,22 +43,17 @@ Command commands[] = {
         "m_sbrk <incremento_bytes>",
         "Modifica el program break de la sección heap.",
         "sbrk(2) / brk(2)",
-        cmd_m_sbrk
-    },
-    {
-        "m_mmap", "memoria",
-        "m_mmap <tamaño_bytes>",
-        "Mapea una zona de memoria anónima y escribe un patrón.",
-        "mmap(2), munmap(2)",
-        cmd_m_mmap
-    },
-    {
-        "m_info", "memoria",
-        "m_info",
-        "Muestra el estado del mapa de memoria del proceso actual.",
-        "Lectura directa de /proc/self/status",
-        cmd_m_info
-    },
+        cmd_m_sbrk},
+    {"m_mmap", "memoria",
+     "m_mmap <tamaño_bytes>",
+     "Mapea una zona de memoria anónima y escribe un patrón.",
+     "mmap(2), munmap(2)",
+     cmd_m_mmap},
+    {"m_info", "memoria",
+     "m_info",
+     "Muestra el estado del mapa de memoria del proceso actual.",
+     "Lectura directa de /proc/self/status",
+     cmd_m_info},
 
     /* --- Categoría: Monitoreo/Procesos --- */
     {
@@ -73,29 +61,22 @@ Command commands[] = {
         "p_fork",
         "Crea un proceso hijo, demuestra sincronización y códigos de salida.",
         "fork(2), getpid(2), getppid(2), waitpid(2)",
-        cmd_p_fork
-    },
-    {
-        "p_exec", "monitoreo",
-        "p_exec <comando> [argumentos...]",
-        "Crea un proceso hijo y ejecuta un comando externo del sistema.",
-        "fork(2), execvp(3), waitpid(2)",
-        cmd_p_exec
-    },
-    {
-        "p_kill", "monitoreo",
-        "p_kill <pid> <numero_señal>",
-        "Envía una señal específica a un proceso en ejecución.",
-        "kill(2)",
-        cmd_p_kill
-    },
-    {
-        "p_monitor", "monitoreo",
-        "p_monitor",
-        "Muestra el uso detallado de recursos de la CPU y memoria del shell.",
-        "getrusage(2)",
-        cmd_p_monitor
-    },
+        cmd_p_fork},
+    {"p_exec", "monitoreo",
+     "p_exec <comando> [argumentos...]",
+     "Crea un proceso hijo y ejecuta un comando externo del sistema.",
+     "fork(2), execvp(3), waitpid(2)",
+     cmd_p_exec},
+    {"p_kill", "monitoreo",
+     "p_kill <pid> <numero_señal>",
+     "Envía una señal específica a un proceso en ejecución.",
+     "kill(2)",
+     cmd_p_kill},
+    {"p_monitor", "monitoreo",
+     "p_monitor",
+     "Muestra el uso detallado de recursos de la CPU y memoria del shell.",
+     "getrusage(2)",
+     cmd_p_monitor},
 
     /* --- Categoría: Utilidades --- */
     {
@@ -103,29 +84,22 @@ Command commands[] = {
         "saludar",
         "Muestra un saludo personalizado para el usuario actual.",
         "getuid(2)",
-        cmd_saludar
-    },
-    {
-        "despedir", "utilidades",
-        "despedir",
-        "Muestra un mensaje de despedida personalizado para el usuario actual.",
-        "getuid(2)",
-        cmd_despedir
-    },
-    {
-        "hora", "utilidades",
-        "hora",
-        "Muestra la hora actual del sistema.",
-        "time(2)",
-        cmd_hora
-    },
-    {
-        "fecha", "utilidades",
-        "fecha",
-        "Muestra la fecha actual del sistema.",
-        "time(2)",
-        cmd_fecha
-    },
+        cmd_saludar},
+    {"despedir", "utilidades",
+     "despedir",
+     "Muestra un mensaje de despedida personalizado para el usuario actual.",
+     "getuid(2)",
+     cmd_despedir},
+    {"hora", "utilidades",
+     "hora",
+     "Muestra la hora actual del sistema.",
+     "time(2)",
+     cmd_hora},
+    {"fecha", "utilidades",
+     "fecha",
+     "Muestra la fecha actual del sistema.",
+     "time(2)",
+     cmd_fecha},
 
     /* --- Categoría: Editor de texto --- */
     {
@@ -133,72 +107,52 @@ Command commands[] = {
         "editor <archivo>",
         "Abre un archivo para edición en memoria.",
         "open(2), read(2), close(2)",
-        cmd_open_text_editor
-    },
-    {
-        "p", "editor",
-        "p [n]",
-        "Imprime la línea n o todo el contenido del archivo.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "a", "editor",
-        "a <texto>",
-        "Agrega una nueva línea con el texto especificado al final del archivo.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "d", "editor",
-        "d <n>",
-        "Elimina la línea n del archivo en memoria.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "i", "editor",
-        "i <n> <texto>",
-        "Inserta una nueva línea con el texto especificado en la posición n.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "s", "editor",
-        "s <palabra>",
-        "Busca la palabra especificada en el archivo y muestra las líneas que la contienen.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "m", "editor",
-        "m",
-        "Muestra metadatos del archivo actualmente abierto en memoria.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "y", "editor",
-        "y <n>",
-        "Copia la línea n al portapapeles interno del editor.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "x", "editor",
-        "x <n>",
-        "Pega la línea más recientemente copiada en la posición n del archivo.",
-        "printf(3)",
-        NULL
-    },
-    {
-        "q", "editor",
-        "q",
-        "Cierra el editor y descarta cualquier cambio no guardado.",
-        "printf(3)",
-        NULL
-    }
-};
+        cmd_open_text_editor},
+    {"p", "editor",
+     "p [n]",
+     "Imprime la línea n o todo el contenido del archivo.",
+     "printf(3)",
+     NULL},
+    {"a", "editor",
+     "a <texto>",
+     "Agrega una nueva línea con el texto especificado al final del archivo.",
+     "printf(3)",
+     NULL},
+    {"d", "editor",
+     "d <n>",
+     "Elimina la línea n del archivo en memoria.",
+     "printf(3)",
+     NULL},
+    {"i", "editor",
+     "i <n> <texto>",
+     "Inserta una nueva línea con el texto especificado en la posición n.",
+     "printf(3)",
+     NULL},
+    {"s", "editor",
+     "s <palabra>",
+     "Busca la palabra especificada en el archivo y muestra las líneas que la contienen.",
+     "printf(3)",
+     NULL},
+    {"m", "editor",
+     "m",
+     "Muestra metadatos del archivo actualmente abierto en memoria.",
+     "printf(3)",
+     NULL},
+    {"y", "editor",
+     "y <archivo_origen>",
+     "Copia un archivo al portapapeles interno del editor.",
+     "stat(2)",
+     NULL},
+    {"x", "editor",
+     "x <destino>",
+     "Pega el último archivo del portapapeles en la ruta destino (sobrescribe y preserva permisos).",
+     "open(2), read(2), write(2), stat(2), fstat(2), fchmod(2), close(2)",
+     NULL},
+    {"q", "editor",
+     "q",
+     "Cierra el editor y descarta cualquier cambio no guardado.",
+     "printf(3)",
+     NULL}};
 
 /* Número total de comandos en el shell */
 const int num_commands = sizeof(commands) / sizeof(commands[0]);
@@ -218,43 +172,56 @@ const int num_commands = sizeof(commands) / sizeof(commands[0]);
  * Retorna:
  * - El número de argumentos (argc) detectados.
  */
-int parse_line(char *line, char **argv) {
+int parse_line(char *line, char **argv)
+{
     int argc = 0;
     char *p = line;
     int in_quote = 0;
     char *arg_start = NULL;
 
-    while (*p) {
-        if (!in_quote && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')) {
+    while (*p)
+    {
+        if (!in_quote && (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r'))
+        {
             /* Espacio en blanco fuera de comillas: Terminar el token actual */
-            if (arg_start != NULL) {
+            if (arg_start != NULL)
+            {
                 *p = '\0'; /* Inserta carácter de fin de cadena */
                 argv[argc++] = arg_start;
                 arg_start = NULL;
             }
-        } else if (*p == '"') {
+        }
+        else if (*p == '"')
+        {
             /* Cambiar el estado de lectura de comillas */
-            if (in_quote) {
+            if (in_quote)
+            {
                 /* Fin del bloque entre comillas */
                 *p = '\0';
                 argv[argc++] = arg_start;
                 arg_start = NULL;
                 in_quote = 0;
-            } else {
+            }
+            else
+            {
                 /* Inicio del bloque entre comillas */
                 in_quote = 1;
                 arg_start = p + 1;
             }
-        } else {
+        }
+        else
+        {
             /* Carácter ordinario del argumento */
-            if (arg_start == NULL) {
+            if (arg_start == NULL)
+            {
                 arg_start = p;
             }
         }
         p++;
     }
     /* Añadir el último argumento si quedó pendiente */
-    if (arg_start != NULL) {
+    if (arg_start != NULL)
+    {
         argv[argc++] = arg_start;
     }
     argv[argc] = NULL; /* Convención POSIX de terminar argv con NULL */
@@ -267,8 +234,10 @@ int parse_line(char *line, char **argv) {
  * ====================================================================================
  * Muestra información pedagógica general del shell, por categoría o por comando individual.
  */
-void print_help(const char *arg) {
-    if (arg == NULL) {
+void print_help(const char *arg)
+{
+    if (arg == NULL)
+    {
         /* Caso 1: Escribió 'help' solo: Mostrar categorías principales */
         printf(COLOR_TITLE "\n--- Shell de Aprendizaje de Syscalls (SO2026B) ---\n" COLOR_RESET);
         printf("Este shell te permite explorar cómo funcionan las llamadas al sistema en Linux.\n");
@@ -290,11 +259,13 @@ void print_help(const char *arg) {
     /* Caso 2: El usuario escribió 'help <categoria>': Mostrar comandos del grupo */
     if (strcmp(arg, "datos") == 0 || strcmp(arg, "memoria") == 0 ||
         strcmp(arg, "monitoreo") == 0 || strcmp(arg, "utilidades") == 0 ||
-        strcmp(arg, "editor") == 0
-    ) {
+        strcmp(arg, "editor") == 0)
+    {
         printf(COLOR_TITLE "\n--- Categoría: %s ---\n" COLOR_RESET, arg);
-        for (int i = 0; i < num_commands; i++) {
-            if (strcmp(commands[i].category, arg) == 0) {
+        for (int i = 0; i < num_commands; i++)
+        {
+            if (strcmp(commands[i].category, arg) == 0)
+            {
                 printf("  " COLOR_PROMPT "%-10s" COLOR_RESET " -> %s\n", commands[i].name, commands[i].description);
                 printf("                " COLOR_INFO "Llamada(s): %s" COLOR_RESET "\n\n", commands[i].syscalls);
             }
@@ -303,8 +274,10 @@ void print_help(const char *arg) {
     }
 
     /* Caso 3: El usuario escribió 'help <comando>': Explicar syscalls individuales */
-    for (int i = 0; i < num_commands; i++) {
-        if (strcmp(commands[i].name, arg) == 0) {
+    for (int i = 0; i < num_commands; i++)
+    {
+        if (strcmp(commands[i].name, arg) == 0)
+        {
             printf(COLOR_TITLE "\nDetalles de comando: %s\n" COLOR_RESET, commands[i].name);
             printf("  Descripción:  %s\n", commands[i].description);
             printf("  Uso:          " COLOR_PARAM "%s" COLOR_RESET "\n", commands[i].usage);
@@ -326,7 +299,8 @@ void print_help(const char *arg) {
  * 3. Print: Imprime los resultados y las llamadas al sistema en consola.
  * 4. Loop: Repite el ciclo infinitamente hasta escribir 'exit' o presionar Ctrl+D.
  */
-int main() {
+int main()
+{
     char line[MAX_LINE];
     char *argv[MAX_ARGS];
 
@@ -337,34 +311,45 @@ int main() {
     printf(COLOR_INFO "    Escribe 'help' para iniciar. Desarrollado en C.\n" COLOR_RESET);
     printf(COLOR_TITLE "========================================================\n\n" COLOR_RESET);
 
-    while (1) {
+    while (1)
+    {
         /* Imprimir prompt cian interactivo */
         printf(COLOR_PROMPT "eafitOS> " COLOR_RESET);
         fflush(stdout); /* Asegurar que se muestre en pantalla antes de bloquear en fgets */
 
         /* Leer línea de entrada. Retorna NULL en EOF (Ctrl+D) */
-        if (fgets(line, sizeof(line), stdin) == NULL) {
+        if (fgets(line, sizeof(line), stdin) == NULL)
+        {
             printf("\n");
             break;
         }
 
         /* Tokenizar línea leída */
         int argc = parse_line(line, argv);
-        if (argc == 0) {
+        if (argc == 0)
+        {
             continue; /* Ignorar comandos vacíos */
         }
 
         /* Comandos Built-in generales */
-        if (strcmp(argv[0], "exit") == 0) {
+        if (strcmp(argv[0], "exit") == 0)
+        {
             printf(COLOR_INFO "Saliendo del shell educativo. ¡Hasta luego!\n" COLOR_RESET);
             break;
-        } else if (strcmp(argv[0], "clear") == 0) {
+        }
+        else if (strcmp(argv[0], "clear") == 0)
+        {
             printf("\033[H\033[J"); /* Limpia la pantalla usando secuencias de escape ANSI */
             continue;
-        } else if (strcmp(argv[0], "help") == 0) {
-            if (argc > 1) {
+        }
+        else if (strcmp(argv[0], "help") == 0)
+        {
+            if (argc > 1)
+            {
                 print_help(argv[1]);
-            } else {
+            }
+            else
+            {
                 print_help(NULL);
             }
             continue;
@@ -372,8 +357,10 @@ int main() {
 
         /* Enrutar la ejecución buscando en la lista de comandos registrados */
         int found = 0;
-        for (int i = 0; i < num_commands; i++) {
-            if (strcmp(argv[0], commands[i].name) == 0) {
+        for (int i = 0; i < num_commands; i++)
+        {
+            if (strcmp(argv[0], commands[i].name) == 0)
+            {
                 commands[i].handler(argc, argv);
                 found = 1;
                 break;
@@ -381,7 +368,8 @@ int main() {
         }
 
         /* Si no se encuentra en el registro educativo del shell */
-        if (!found) {
+        if (!found)
+        {
             printf(COLOR_ERROR "Comando '%s' no encontrado en el shell educativo.\n" COLOR_RESET, argv[0]);
             printf(COLOR_INFO "Prueba usando 'p_exec %s' si quieres ejecutarlo como un binario de Linux externo, o escribe 'help'.\n" COLOR_RESET, argv[0]);
         }
