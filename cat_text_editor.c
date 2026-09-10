@@ -41,10 +41,10 @@ typedef struct
     size_t line_count;  /* number of lines (for quick checks) */
 } editor_file_t;
 
-/* Clipboard: stores the path of the most recently copied file */
+/* Clipboard: stores the most recently copied line */
 typedef struct
 {
-    char *last_copied_path;
+    line_node_t *last_copied;
 } clipboard_t;
 
 /* ========================================================================= *
@@ -53,7 +53,7 @@ typedef struct
 
 static const editor_file_t initial_state = {.fd = -1, .path = NULL, .size = 0, .lines = NULL, .line_count = 0};
 static editor_file_t global_state = {.fd = -1, .path = NULL, .size = 0, .lines = NULL, .line_count = 0};
-static clipboard_t g_clipboard = {.last_copied_path = NULL};
+static clipboard_t g_clipboard = {.last_copied = NULL};
 
 /* ========================================================================= *
  *  INTERNAL PROTOTYPES
@@ -81,7 +81,7 @@ static int te_search(const char *word);
 static int te_metadata(void);
 static int te_copy(const char *arg);
 static int te_paste(const char *arg);
-static int te_copy_file_with_permissions(const char *src_path, const char *dst_path);
+static line_node_t *clone_line(const line_node_t *src);
 
 /* ========================================================================= *
  *  MEMORY AND LIST MANAGEMENT
@@ -216,6 +216,35 @@ static int append_line_to_document(editor_file_t *ef, line_node_t *line)
     }
     ef->line_count++;
     return 0;
+}
+
+static line_node_t *clone_line(const line_node_t *src)
+{
+    line_node_t *copy = calloc(1, sizeof(*copy));
+    word_node_t *tail = NULL;
+
+    if (!copy)
+        return NULL;
+
+    for (word_node_t *w = src->words; w != NULL; w = w->next)
+    {
+        word_node_t *new_word = word_create(w->word ? w->word : "");
+        if (!new_word)
+        {
+            free_word_list(copy->words);
+            free(copy);
+            return NULL;
+        }
+
+        if (copy->words == NULL)
+            copy->words = new_word;
+        else
+            tail->next = new_word;
+
+        tail = new_word;
+    }
+
+    return copy;
 }
 
 /* ========================================================================= *
@@ -843,57 +872,107 @@ static int te_metadata(void)
 
 static int te_copy(const char *arg)
 {
-    struct stat st;
+    char *end = NULL;
+    long n;
+    line_node_t *cur = global_state.lines;
+    size_t idx = 1;
 
     if (arg == NULL || *arg == '\0')
     {
-        printf("Error: usage: y <archivo_origen>\n");
+        printf("Error: usage: y <n>\n");
         return -1;
     }
 
-    if (stat(arg, &st) == -1)
+    n = strtol(arg, &end, 10);
+    if (end == arg || *end != '\0' || n < 1)
     {
-        perror("Error accessing source file");
+        printf("Error: invalid line number: %s\n", arg);
         return -1;
     }
 
-    if (g_clipboard.last_copied_path != NULL)
+    if (global_state.line_count == 0 || (size_t)n > global_state.line_count)
     {
-        free(g_clipboard.last_copied_path);
-        g_clipboard.last_copied_path = NULL;
-    }
-
-    g_clipboard.last_copied_path = strdup(arg);
-    if (g_clipboard.last_copied_path == NULL)
-    {
-        printf("Error: out of memory while copying file to clipboard\n");
+        printf("Error: line %ld out of range (max %zu)\n", n, global_state.line_count);
         return -1;
     }
 
-    printf("File '%s' copied to clipboard.\n", g_clipboard.last_copied_path);
+    while (cur != NULL && idx < (size_t)n)
+    {
+        cur = cur->next;
+        idx++;
+    }
+
+    if (g_clipboard.last_copied != NULL)
+    {
+        free_line_list(g_clipboard.last_copied);
+        g_clipboard.last_copied = NULL;
+    }
+
+    g_clipboard.last_copied = clone_line(cur);
+    if (g_clipboard.last_copied == NULL)
+    {
+        printf("Error: out of memory while copying line\n");
+        return -1;
+    }
+
+    printf("Line %ld copied to clipboard.\n", n);
     return 0;
 }
 
 static int te_paste(const char *arg)
 {
+    char *end = NULL;
+    long n;
+    line_node_t *new_line;
+
     if (arg == NULL || *arg == '\0')
     {
-        printf("Error: usage: x <destino>\n");
+        printf("Error: usage: x <n>\n");
         return -1;
     }
 
-    if (g_clipboard.last_copied_path == NULL)
+    if (g_clipboard.last_copied == NULL)
     {
-        printf("Error: clipboard is empty. Use y <archivo_origen> first.\n");
+        printf("Error: clipboard empty. Use y <n> first.\n");
         return -1;
     }
 
-    if (te_copy_file_with_permissions(g_clipboard.last_copied_path, arg) < 0)
+    n = strtol(arg, &end, 10);
+    if (end == arg || *end != '\0' || n < 1)
     {
+        printf("Error: invalid line number: %s\n", arg);
         return -1;
     }
 
-    printf("Pasted '%s' into '%s' preserving permissions.\n", g_clipboard.last_copied_path, arg);
+    if ((size_t)n > global_state.line_count + 1)
+    {
+        printf("Error: line %ld out of range (max %zu)\n", n, global_state.line_count + 1);
+        return -1;
+    }
+
+    new_line = clone_line(g_clipboard.last_copied);
+    if (new_line == NULL)
+    {
+        printf("Error: out of memory while pasting line\n");
+        return -1;
+    }
+
+    if (n == 1)
+    {
+        new_line->next = global_state.lines;
+        global_state.lines = new_line;
+    }
+    else
+    {
+        line_node_t *prev = global_state.lines;
+        for (long i = 1; i < n - 1; i++)
+            prev = prev->next;
+        new_line->next = prev->next;
+        prev->next = new_line;
+    }
+
+    global_state.line_count++;
+    printf("Line pasted at position %ld.\n", n);
     return 0;
 }
 
