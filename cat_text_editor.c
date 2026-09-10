@@ -791,6 +791,9 @@ static int te_search(const char *word)
 static int te_metadata(void)
 {
     struct stat st;
+    size_t mem_chars = 0;
+    size_t mem_lines = 0;
+    int has_unsaved_changes = 0;
 
     if (global_state.fd == -1 || global_state.path == NULL)
     {
@@ -804,13 +807,37 @@ static int te_metadata(void)
         return -1;
     }
 
-    printf("--- File Metadata ---\n");
-    printf("Path: %s\n", global_state.path);
-    printf("Size: %ld bytes\n", (long)st.st_size);
-    printf("Permissions (octal): %o\n", st.st_mode & 0777);
-    printf("Inode: %ld\n", (long)st.st_ino);
-    printf("Modified: %s", ctime(&st.st_mtime));
-    printf("---------------------\n");
+    for (line_node_t *cur = global_state.lines; cur != NULL; cur = cur->next)
+    {
+        mem_lines++;
+        for (word_node_t *w = cur->words; w != NULL; w = w->next)
+        {
+            if (w->word != NULL)
+            {
+                mem_chars += strlen(w->word);
+            }
+        }
+        mem_chars += 1; /* espacio o salto de línea aproximado */
+    }
+
+    if (mem_chars != (size_t)st.st_size)
+    {
+        has_unsaved_changes = 1;
+    }
+
+    printf("--- Metadata del archivo ---\n");
+    printf("[Disk / saved file]\n");
+    printf("  Path: %s\n", global_state.path);
+    printf("  Size: %ld bytes\n", (long)st.st_size);
+    printf("  Permissions (octal): %o\n", st.st_mode & 0777);
+    printf("  Inode: %ld\n", (long)st.st_ino);
+    printf("  Modified: %s", ctime(&st.st_mtime));
+
+    printf("[Memory / editor state]\n");
+    printf("  Lines in memory: %zu\n", mem_lines);
+    printf("  Estimated characters in memory: %zu\n", mem_chars);
+    printf("  Unsaved changes: %s\n", has_unsaved_changes ? "YES" : "NO");
+    printf("----------------------------\n");
     return 0;
 }
 
