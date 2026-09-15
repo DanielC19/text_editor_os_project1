@@ -16,8 +16,8 @@
  * ========================================================================= */
 
 /* Linked-list design:
- * - Each `word_node_t` holds a single word (string) and a pointer to the next word.
- * - Each `line_node_t` holds a linked list of `word_node_t` and a pointer to the next line.
+ * - Each `word_node_t` holds a run of non-space text OR a run of spaces/tabs.
+ * - Each `line_node_t` holds a linked list of those runs (the original spacing).
  * Lines are 1-based for user commands. Lines and words use dynamic allocation.
  */
 typedef struct word_node
@@ -87,6 +87,11 @@ static line_node_t *clone_line(const line_node_t *src);
  *  MEMORY AND LIST MANAGEMENT
  * ========================================================================= */
 
+static int is_stored_space_char(char c)
+{
+    return c == ' ' || c == '\t';
+}
+
 static word_node_t *word_create(const char *s)
 {
     word_node_t *w = malloc(sizeof(*w));
@@ -134,42 +139,39 @@ static void free_line_list(line_node_t *line)
     }
 }
 
-/* Build a line whose words are the tokens of `text` (spaces/tabs). Empty text -> empty line. */
+/* Build a line as alternating runs of words and spaces/tabs. Empty text -> empty line. */
 static line_node_t *line_create_from_text(const char *text)
 {
     line_node_t *line = calloc(1, sizeof(*line));
+    size_t i = 0;
+
     if (!line)
         return NULL;
 
     if (!text || *text == '\0')
         return line;
 
-    char *copy = strdup(text);
-    if (!copy)
+    while (text[i] != '\0' && text[i] != '\n')
     {
-        free(line);
-        return NULL;
-    }
+        size_t start = i;
 
-    word_node_t *tail = NULL;
-    char *tok = strtok(copy, " \t");
-    while (tok != NULL)
-    {
-        word_node_t *w = word_create(tok);
-        if (!w)
+        if (is_stored_space_char(text[i]))
         {
-            free(copy);
+            while (is_stored_space_char(text[i]))
+                i++;
+        }
+        else
+        {
+            while (text[i] != '\0' && text[i] != '\n' && !is_stored_space_char(text[i]))
+                i++;
+        }
+
+        if (append_word_to_line(line, text + start, i - start) < 0)
+        {
             line_free(line);
             return NULL;
         }
-        if (line->words == NULL)
-            line->words = w;
-        else
-            tail->next = w;
-        tail = w;
-        tok = strtok(NULL, " \t");
     }
-    free(copy);
     return line;
 }
 
@@ -434,22 +436,13 @@ static int te_save(void)
     while (cur_line != NULL)
     {
         word_node_t *cur_word = cur_line->words;
-        int is_first_word = 1;
 
         while (cur_word != NULL)
         {
-            /* Write a space before each word (except the first one in the line) */
-            if (!is_first_word)
-            {
-                write(global_state.fd, " ", 1);
-            }
-
             if (cur_word->word != NULL)
             {
                 write(global_state.fd, cur_word->word, strlen(cur_word->word));
             }
-
-            is_first_word = 0;
             cur_word = cur_word->next;
         }
 
@@ -490,8 +483,13 @@ static int load_file_into_nodes(editor_file_t *ef)
         for (ssize_t i = 0; i < bytes_read; i++)
         {
             unsigned char c = (unsigned char)buffer[i];
+            int c_is_space;
+            int run_is_space;
 
-            if (c == '\n' || c == ' ' || c == '\t' || c == '\r' || c == '\v' || c == '\f')
+            if (c == '\r' || c == '\v' || c == '\f')
+                continue;
+
+            if (c == '\n')
             {
                 if (word_len > 0)
                 {
@@ -504,45 +502,55 @@ static int load_file_into_nodes(editor_file_t *ef)
                     word_len = 0;
                 }
 
-                if (c == '\n')
+                if (append_line_to_document(ef, current_line) < 0)
                 {
-                    if (append_line_to_document(ef, current_line) < 0)
-                    {
-                        free(word_buf);
-                        free_line_list(current_line);
-                        return -1;
-                    }
-                    current_line = calloc(1, sizeof(*current_line));
-                    if (!current_line)
-                    {
-                        free(word_buf);
-                        free_line_list(ef->lines);
-                        ef->lines = NULL;
-                        ef->line_count = 0;
-                        return -1;
-                    }
+                    free(word_buf);
+                    free_line_list(current_line);
+                    return -1;
                 }
+                current_line = calloc(1, sizeof(*current_line));
+                if (!current_line)
+                {
+                    free(word_buf);
+                    free_line_list(ef->lines);
+                    ef->lines = NULL;
+                    ef->line_count = 0;
+                    return -1;
+                }
+                continue;
             }
-            else
+
+            c_is_space = is_stored_space_char((char)c);
+            run_is_space = (word_len > 0) && is_stored_space_char(word_buf[0]);
+
+            if (word_len > 0 && c_is_space != run_is_space)
             {
-                if (word_len + 1 > word_cap)
+                if (append_word_to_line(current_line, word_buf, word_len) < 0)
                 {
-                    size_t new_cap = (word_cap == 0) ? 32 : word_cap * 2;
-                    char *new_buf = realloc(word_buf, new_cap);
-                    if (!new_buf)
-                    {
-                        free(word_buf);
-                        free_line_list(current_line);
-                        free_line_list(ef->lines);
-                        ef->lines = NULL;
-                        ef->line_count = 0;
-                        return -1;
-                    }
-                    word_buf = new_buf;
-                    word_cap = new_cap;
+                    free(word_buf);
+                    free_line_list(current_line);
+                    return -1;
                 }
-                word_buf[word_len++] = (char)c;
+                word_len = 0;
             }
+
+            if (word_len + 1 > word_cap)
+            {
+                size_t new_cap = (word_cap == 0) ? 32 : word_cap * 2;
+                char *new_buf = realloc(word_buf, new_cap);
+                if (!new_buf)
+                {
+                    free(word_buf);
+                    free_line_list(current_line);
+                    free_line_list(ef->lines);
+                    ef->lines = NULL;
+                    ef->line_count = 0;
+                    return -1;
+                }
+                word_buf = new_buf;
+                word_cap = new_cap;
+            }
+            word_buf[word_len++] = (char)c;
         }
     }
 
@@ -599,13 +607,10 @@ static int load_file_into_nodes(editor_file_t *ef)
 static void print_line_words(const line_node_t *line)
 {
     const word_node_t *w = line->words;
-    int first = 1;
+
     while (w != NULL)
     {
-        if (!first)
-            printf(" ");
         printf("%s", w->word ? w->word : "");
-        first = 0;
         w = w->next;
     }
     printf("\n");
@@ -621,7 +626,7 @@ static int te_print(const char *arg)
     {
         while (cur != NULL)
         {
-            printf("%zu\t", idx);
+            printf(COLOR_RESULT "%zu" COLOR_RESET "\t", idx);
             print_line_words(cur);
             cur = cur->next;
             idx++;
@@ -652,7 +657,7 @@ static int te_print(const char *arg)
         printf("Error: line %ld not found\n", n);
         return -1;
     }
-    printf("%ld\t", n);
+    printf(COLOR_RESULT "%ld" COLOR_RESET "\t", n);
     print_line_words(cur);
     return 0;
 }
@@ -846,7 +851,7 @@ static int te_metadata(void)
                 mem_chars += strlen(w->word);
             }
         }
-        mem_chars += 1; /* espacio o salto de línea aproximado */
+        mem_chars += 1; /* newline written by te_save */
     }
 
     if (mem_chars != (size_t)st.st_size)
@@ -980,25 +985,51 @@ static int te_paste(const char *arg)
  *  PARSER AND SHELL INTERFACE
  * ========================================================================= */
 
+static size_t skip_spaces(const char *s, size_t i)
+{
+    while (s[i] == ' ' || s[i] == '\t')
+        i++;
+    return i;
+}
+
+/* Consume at most one space/tab so the rest of the payload keeps extra spaces. */
+static size_t skip_one_separator(const char *s, size_t i)
+{
+    if (s[i] == ' ' || s[i] == '\t')
+        i++;
+    return i;
+}
+
+static void copy_until_newline(char *dst, size_t dst_size, const char *src)
+{
+    size_t n = 0;
+
+    if (dst_size == 0)
+        return;
+    while (src[n] != '\0' && src[n] != '\n' && n + 1 < dst_size)
+        n++;
+    memcpy(dst, src, n);
+    dst[n] = '\0';
+}
+
 static int parse_line_editor(const char *line)
 {
-    static char *argv[10];
-    char buffer[256];
-    int argc = 0;
+    size_t i = 0;
+    char cmd[32];
+    size_t cmd_len = 0;
+    char arg[256];
+    size_t arg_len = 0;
 
-    strncpy(buffer, line, sizeof(buffer) - 1);
-    buffer[sizeof(buffer) - 1] = '\0';
-
-    char *token = strtok(buffer, " \t\n");
-    while (token != NULL && argc < 10)
-    {
-        argv[argc++] = token;
-        token = strtok(NULL, " \t\n");
-    }
-
-    if (argc == 0)
+    i = skip_spaces(line, i);
+    if (line[i] == '\0' || line[i] == '\n')
         return 0;
-    const char *cmd = argv[0];
+
+    while (line[i] != '\0' && line[i] != '\n' && line[i] != ' ' && line[i] != '\t'
+           && cmd_len + 1 < sizeof(cmd))
+    {
+        cmd[cmd_len++] = line[i++];
+    }
+    cmd[cmd_len] = '\0';
 
     if (strcmp(cmd, "q") == 0)
     {
@@ -1010,57 +1041,59 @@ static int parse_line_editor(const char *line)
     }
     else if (strcmp(cmd, "p") == 0)
     {
-        te_print(argc > 1 ? argv[1] : NULL);
+        i = skip_spaces(line, i);
+        copy_until_newline(arg, sizeof(arg), line + i);
+        /* p takes at most one token (line number); ignore trailing junk after it */
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_print(arg[0] ? arg : NULL);
     }
     else if (strcmp(cmd, "a") == 0)
     {
-        char text[256] = "";
-        if (argc > 1)
-        {
-            size_t used = 0;
-            for (int i = 1; i < argc; i++)
-            {
-                size_t tok_len = strlen(argv[i]);
-                if (i > 1 && used + 1 < sizeof(text))
-                    text[used++] = ' ';
-                if (used + tok_len < sizeof(text))
-                {
-                    memcpy(text + used, argv[i], tok_len);
-                    used += tok_len;
-                }
-            }
-            text[used] = '\0';
-        }
-        te_append(argc > 1 ? text : NULL);
+        char text[256];
+
+        i = skip_one_separator(line, i);
+        copy_until_newline(text, sizeof(text), line + i);
+        te_append(text[0] ? text : NULL);
     }
     else if (strcmp(cmd, "d") == 0)
     {
-        te_delete(argc > 1 ? argv[1] : NULL);
+        i = skip_spaces(line, i);
+        copy_until_newline(arg, sizeof(arg), line + i);
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_delete(arg[0] ? arg : NULL);
     }
     else if (strcmp(cmd, "i") == 0)
     {
-        char text[256] = "";
-        if (argc > 2)
+        char nbuf[32];
+        size_t nlen = 0;
+        char text[256];
+
+        i = skip_spaces(line, i);
+        while (line[i] >= '0' && line[i] <= '9' && nlen + 1 < sizeof(nbuf))
         {
-            size_t used = 0;
-            for (int i = 2; i < argc; i++)
-            {
-                size_t tok_len = strlen(argv[i]);
-                if (i > 2 && used + 1 < sizeof(text))
-                    text[used++] = ' ';
-                if (used + tok_len < sizeof(text))
-                {
-                    memcpy(text + used, argv[i], tok_len);
-                    used += tok_len;
-                }
-            }
-            text[used] = '\0';
+            nbuf[nlen++] = line[i++];
         }
-        te_insert(argc > 1 ? argv[1] : NULL, argc > 2 ? text : NULL);
+        nbuf[nlen] = '\0';
+
+        i = skip_one_separator(line, i);
+        copy_until_newline(text, sizeof(text), line + i);
+        te_insert(nlen ? nbuf : NULL, text[0] ? text : NULL);
     }
     else if (strcmp(cmd, "s") == 0)
     {
-        te_search(argc > 1 ? argv[1] : NULL);
+        i = skip_spaces(line, i);
+        copy_until_newline(arg, sizeof(arg), line + i);
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_search(arg[0] ? arg : NULL);
     }
     else if (strcmp(cmd, "m") == 0)
     {
@@ -1068,18 +1101,30 @@ static int parse_line_editor(const char *line)
     }
     else if (strcmp(cmd, "y") == 0)
     {
-        te_copy(argc > 1 ? argv[1] : NULL);
+        i = skip_spaces(line, i);
+        copy_until_newline(arg, sizeof(arg), line + i);
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_copy(arg[0] ? arg : NULL);
     }
     else if (strcmp(cmd, "x") == 0)
     {
-        te_paste(argc > 1 ? argv[1] : NULL);
+        i = skip_spaces(line, i);
+        copy_until_newline(arg, sizeof(arg), line + i);
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_paste(arg[0] ? arg : NULL);
     }
     else
     {
         printf("Unknown command: %s\n", cmd);
     }
 
-    return argc;
+    return 1;
 }
 
 int cmd_open_text_editor(int argc, char **argv)
