@@ -16,143 +16,221 @@
 Command commands[] = {
     /* --- Categoría: Datos --- */
     {
-        "d_create", "datos",
+        "d_create",
+        "datos",
         "d_create <archivo> \"<texto>\"",
         "Crea un archivo escribiendo un texto en él.",
         "open(2), write(2), close(2)",
-        cmd_d_create},
-    {"d_read", "datos",
-     "d_read <archivo>",
-     "Lee y muestra el contenido de un archivo.",
-     "open(2), read(2), close(2)",
-     cmd_d_read},
-    {"d_info", "datos",
-     "d_info <archivo>",
-     "Muestra metadatos detallados de un archivo.",
-     "stat(2)",
-     cmd_d_info},
-    {"d_copy", "datos",
-     "d_copy <origen> <destino>",
-     "Copia recursiva o lineal de bytes entre archivos.",
-     "open(2), read(2), write(2), close(2)",
-     cmd_d_copy},
+        cmd_d_create
+    },
+    {
+        "d_read",
+        "datos",
+        "d_read <archivo>",
+        "Lee y muestra el contenido de un archivo.",
+        "open(2), read(2), close(2)",
+        cmd_d_read
+    },
+    {
+        "d_info",
+        "datos",
+        "d_info <archivo>",
+        "Muestra metadatos detallados de un archivo.",
+        "stat(2)",
+        cmd_d_info
+    },
+    {
+        "d_copy",
+        "datos",
+        "d_copy <origen> <destino>",
+        "Copia recursiva o lineal de bytes entre archivos.",
+        "open(2), read(2), write(2), close(2)",
+        cmd_d_copy
+    },
 
     /* --- Categoría: Memoria --- */
     {
-        "m_sbrk", "memoria",
+        "m_sbrk",
+        "memoria",
         "m_sbrk <incremento_bytes>",
         "Modifica el program break de la sección heap.",
         "sbrk(2) / brk(2)",
-        cmd_m_sbrk},
-    {"m_mmap", "memoria",
-     "m_mmap <tamaño_bytes>",
-     "Mapea una zona de memoria anónima y escribe un patrón.",
-     "mmap(2), munmap(2)",
-     cmd_m_mmap},
-    {"m_info", "memoria",
-     "m_info",
-     "Muestra el estado del mapa de memoria del proceso actual.",
-     "Lectura directa de /proc/self/status",
-     cmd_m_info},
+        cmd_m_sbrk
+    },
+    {
+        "m_mmap",
+        "memoria",
+        "m_mmap <tamaño_bytes>",
+        "Mapea una zona de memoria anónima y escribe un patrón.",
+        "mmap(2), munmap(2)",
+        cmd_m_mmap
+    },
+    {
+        "m_info",
+        "memoria",
+        "m_info",
+        "Muestra el estado del mapa de memoria del proceso actual.",
+        "Lectura directa de /proc/self/status",
+        cmd_m_info
+    },
 
     /* --- Categoría: Monitoreo/Procesos --- */
     {
-        "p_fork", "monitoreo",
+        "p_fork",
+        "monitoreo",
         "p_fork",
         "Crea un proceso hijo, demuestra sincronización y códigos de salida.",
         "fork(2), getpid(2), getppid(2), waitpid(2)",
-        cmd_p_fork},
-    {"p_exec", "monitoreo",
-     "p_exec <comando> [argumentos...]",
-     "Crea un proceso hijo y ejecuta un comando externo del sistema.",
-     "fork(2), execvp(3), waitpid(2)",
-     cmd_p_exec},
-    {"p_kill", "monitoreo",
-     "p_kill <pid> <numero_señal>",
-     "Envía una señal específica a un proceso en ejecución.",
-     "kill(2)",
-     cmd_p_kill},
-    {"p_monitor", "monitoreo",
-     "p_monitor",
-     "Muestra el uso detallado de recursos de la CPU y memoria del shell.",
-     "getrusage(2)",
-     cmd_p_monitor},
+        cmd_p_fork
+    },
+    {
+        "p_exec",
+        "monitoreo",
+        "p_exec <comando> [argumentos...]",
+        "Crea un proceso hijo y ejecuta un comando externo del sistema.",
+        "fork(2), execvp(3), waitpid(2)",
+        cmd_p_exec
+    },
+    {
+        "p_kill",
+        "monitoreo",
+        "p_kill <pid> <numero_señal>",
+        "Envía una señal específica a un proceso en ejecución.",
+        "kill(2)",
+        cmd_p_kill
+    },
+    {
+        "p_monitor",
+        "monitoreo",
+        "p_monitor",
+        "Muestra el uso detallado de recursos de la CPU y memoria del shell.",
+        "getrusage(2)",
+        cmd_p_monitor
+    },
 
     /* --- Categoría: Utilidades --- */
     {
-        "saludar", "utilidades",
+        "saludar",
+        "utilidades",
         "saludar",
         "Muestra un saludo personalizado para el usuario actual.",
         "getuid(2)",
-        cmd_saludar},
-    {"despedir", "utilidades",
-     "despedir",
-     "Muestra un mensaje de despedida personalizado para el usuario actual.",
-     "getuid(2)",
-     cmd_despedir},
-    {"hora", "utilidades",
-     "hora",
-     "Muestra la hora actual del sistema.",
-     "time(2)",
-     cmd_hora},
-    {"fecha", "utilidades",
-     "fecha",
-     "Muestra la fecha actual del sistema.",
-     "time(2)",
-     cmd_fecha},
+        cmd_saludar
+    },
+    {
+        "despedir",
+        "utilidades",
+        "despedir",
+        "Muestra un mensaje de despedida personalizado para el usuario actual.",
+        "getuid(2)",
+        cmd_despedir
+    },
+    {
+        "hora",
+        "utilidades",
+        "hora",
+        "Muestra la hora actual del sistema.",
+        "time(2)",
+        cmd_hora
+    },
+    {
+        "fecha",
+        "utilidades",
+        "fecha",
+        "Muestra la fecha actual del sistema.",
+        "time(2)",
+        cmd_fecha
+    },
 
     /* --- Categoría: Editor de texto --- */
     {
-        "editor", "editor",
+        "editor",
+        "editor",
         "editor <archivo>",
         "Abre un archivo para edición en memoria.",
         "open(2), read(2), close(2)",
-        cmd_open_text_editor},
-    {"p", "editor",
-     "p [n]",
-     "Imprime la línea n o todo el contenido del archivo.",
-     "printf(3)",
-     NULL},
-    {"a", "editor",
-     "a <texto>",
-     "Agrega una nueva línea con el texto especificado al final del archivo.",
-     "printf(3)",
-     NULL},
-    {"d", "editor",
-     "d <n>",
-     "Elimina la línea n del archivo en memoria.",
-     "printf(3)",
-     NULL},
-    {"i", "editor",
-     "i <n> <texto>",
-     "Inserta una nueva línea con el texto especificado en la posición n.",
-     "printf(3)",
-     NULL},
-    {"s", "editor",
-     "s <palabra>",
-     "Busca la palabra especificada en el archivo y muestra las líneas que la contienen.",
-     "printf(3)",
-     NULL},
-    {"m", "editor",
-     "m",
-     "Muestra metadatos del archivo actualmente abierto en memoria.",
-     "fstat(2)",
-     NULL},
-    {"y", "editor",
-     "y <n>",
-     "Copia la línea n al portapapeles del editor.",
-     "printf(3)",
-     NULL},
-    {"x", "editor",
-     "x <n>",
-     "Pega la línea copiada en la posición n del archivo.",
-     "printf(3)",
-     NULL},
-    {"q", "editor",
-     "q",
-     "Cierra el editor y descarta cualquier cambio no guardado.",
-     "printf(3)",
-     NULL}};
+        cmd_open_text_editor
+    },
+    {
+        "p",
+        "editor",
+        "p [n]",
+        "Imprime la línea n o todo el contenido del archivo.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "a",
+        "editor",
+        "a <texto>",
+        "Agrega una nueva línea con el texto especificado al final del archivo.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "d",
+        "editor",
+        "d <n>",
+        "Elimina la línea n del archivo en memoria.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "i",
+        "editor",
+        "i <n> <texto>",
+        "Inserta una nueva línea con el texto especificado en la posición n.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "s", "editor",
+        "s <palabra>",
+        "Busca la palabra especificada en el archivo y muestra las líneas que la contienen.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "m",
+        "editor",
+        "m",
+        "Muestra metadatos del archivo actualmente abierto en memoria.",
+        "fstat(2)",
+        NULL
+    },
+    {
+        "y",
+        "editor",
+        "y <n>",
+        "Copia la línea n al portapapeles del editor.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "x",
+        "editor",
+        "x <n>",
+        "Pega la línea copiada en la posición n del archivo.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "qw",
+        "editor",
+        "qw",
+        "Cierra el editor y guarda todos los cambios realizados.",
+        "printf(3)",
+        NULL
+    },
+    {
+        "qd",
+        "editor",
+        "qd",
+        "Cierra el editor y descarta los cambios no guardados.",
+        "printf(3)",
+        NULL
+    }
+};
 
 /* Número total de comandos en el shell */
 const int num_commands = sizeof(commands) / sizeof(commands[0]);

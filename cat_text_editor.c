@@ -1033,6 +1033,15 @@ static int parse_line_editor(const char *line)
 
     if (strcmp(cmd, "q") == 0)
     {
+        printf("Use 'qw' to save and quit, or 'qd' to quit without saving.\n");
+    }
+    else if (strcmp(cmd, "qw") == 0)
+    {
+        te_save();
+        te_close();
+    }
+    else if (strcmp(cmd, "qd") == 0)
+    {
         te_close();
     }
     else if (strcmp(cmd, "w") == 0)
