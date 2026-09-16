@@ -1,6 +1,7 @@
 #include "shell.h"
 #include <stdio.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 
 #define MAX_ARGS 64
@@ -235,6 +236,105 @@ Command commands[] = {
 /* Número total de comandos en el shell */
 const int num_commands = sizeof(commands) / sizeof(commands[0]);
 
+static void redraw_command_line(const char *prompt, const char *line, size_t length, size_t cursor)
+{
+    size_t remaining = length - cursor;
+
+    printf("\r%s%s\033[K", prompt, line);
+    if (remaining > 0)
+        printf("\033[%zuD", remaining);
+    fflush(stdout);
+}
+
+int read_command_line(char *line, size_t line_size, const char *prompt)
+{
+    struct termios original;
+    struct termios raw;
+    size_t length = 0;
+    size_t cursor = 0;
+    char ch;
+
+    if (line_size < 2)
+        return -1;
+
+    if (!isatty(STDIN_FILENO) || tcgetattr(STDIN_FILENO, &original) == -1)
+    {
+        fputs(prompt, stdout);
+        fflush(stdout);
+        return fgets(line, line_size, stdin) == NULL ? 0 : 1;
+    }
+
+    raw = original;
+    raw.c_lflag &= ~(ICANON | ECHO);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
+        return -1;
+
+    line[0] = '\0';
+    fputs(prompt, stdout);
+    fflush(stdout);
+
+    while (read(STDIN_FILENO, &ch, 1) == 1)
+    {
+        if (ch == '\n' || ch == '\r')
+        {
+            line[length] = '\n';
+            line[length + 1] = '\0';
+            putchar('\n');
+            tcsetattr(STDIN_FILENO, TCSAFLUSH, &original);
+            return 1;
+        }
+        if (ch == 4)
+        {
+            if (length == 0)
+            {
+                putchar('\n');
+                tcsetattr(STDIN_FILENO, TCSAFLUSH, &original);
+                return 0;
+            }
+            continue;
+        }
+        if (ch == 127 || ch == '\b')
+        {
+            if (cursor > 0)
+            {
+                memmove(line + cursor - 1, line + cursor, length - cursor);
+                length--;
+                cursor--;
+                line[length] = '\0';
+                redraw_command_line(prompt, line, length, cursor);
+            }
+            continue;
+        }
+        if (ch == '\033')
+        {
+            char sequence[2];
+
+            if (read(STDIN_FILENO, &sequence[0], 1) != 1 || sequence[0] != '[' ||
+                read(STDIN_FILENO, &sequence[1], 1) != 1)
+                continue;
+            if (sequence[1] == 'D' && cursor > 0)
+                cursor--;
+            else if (sequence[1] == 'C' && cursor < length)
+                cursor++;
+            redraw_command_line(prompt, line, length, cursor);
+            continue;
+        }
+        if (ch >= 32 && ch != 127 && length + 1 < line_size)
+        {
+            memmove(line + cursor + 1, line + cursor, length - cursor);
+            line[cursor++] = ch;
+            length++;
+            line[length] = '\0';
+            redraw_command_line(prompt, line, length, cursor);
+        }
+    }
+
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &original);
+    return 0;
+}
+
 /**
  * ====================================================================================
  * ANALIZADOR DE LÍNEA DE COMANDOS (TOKENIZADOR)
@@ -392,13 +492,8 @@ int main()
     while (1)
     {
         /* Imprimir prompt cian interactivo */
-        printf(COLOR_PROMPT "eafitOS> " COLOR_RESET);
-        fflush(stdout); /* Asegurar que se muestre en pantalla antes de bloquear en fgets */
-
-        /* Leer línea de entrada. Retorna NULL en EOF (Ctrl+D) */
-        if (fgets(line, sizeof(line), stdin) == NULL)
+        if (read_command_line(line, sizeof(line), COLOR_PROMPT "eafitOS> " COLOR_RESET) <= 0)
         {
-            printf("\n");
             break;
         }
 

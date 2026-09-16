@@ -65,6 +65,8 @@ typedef struct {
     int (*handler)(int argc, char **argv); /* Puntero a la función que implementa la lógica del comando */
 } Command;
 
+int read_command_line(char *line, size_t line_size, const char *prompt);
+
 /* ====================================================================================
  * Declaración de Prototipos de Comandos
  * ====================================================================================

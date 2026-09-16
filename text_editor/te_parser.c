@@ -165,12 +165,8 @@ int cmd_open_text_editor(int argc, char **argv)
 
     while (te_global_state.fd != -1)
     {
-        printf("\033[1;36m editor> " COLOR_RESET);
-        fflush(stdout);
-
-        if (fgets(line, sizeof(line), stdin) == NULL)
+        if (read_command_line(line, sizeof(line), "\033[1;36m editor> " COLOR_RESET) <= 0)
         {
-            printf("\n");
             break;
         }
 
