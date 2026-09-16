@@ -1170,3 +1170,9 @@ int cmd_open_text_editor(int argc, char **argv)
 
     return 0;
 }
+
+int cmd_help_text_editor(int argc, char **argv)
+{
+    printf("Este comando solo funciona dentro del editor de texto. Para usarlo, primero ejecuta 'editor <archivo>' y luego ingresa los comandos.\n");
+    return 0;
+}

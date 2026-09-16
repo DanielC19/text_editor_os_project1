@@ -95,5 +95,6 @@ int cmd_fecha(int argc, char **argv);     /* Syscalls: time */
 
 /* --- Categoría: Editor de texto (cat_text_editor.c) --- */
 int cmd_open_text_editor(int argc, char **argv);
+int cmd_help_text_editor(int argc, char **argv);
 
 #endif /* SHELL_H */

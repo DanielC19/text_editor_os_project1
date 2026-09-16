@@ -157,7 +157,7 @@ Command commands[] = {
         "p [n]",
         "Imprime la línea n o todo el contenido del archivo.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "a",
@@ -165,7 +165,7 @@ Command commands[] = {
         "a <texto>",
         "Agrega una nueva línea con el texto especificado al final del archivo.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "d",
@@ -173,7 +173,7 @@ Command commands[] = {
         "d <n>",
         "Elimina la línea n del archivo en memoria.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "i",
@@ -181,14 +181,14 @@ Command commands[] = {
         "i <n> <texto>",
         "Inserta una nueva línea con el texto especificado en la posición n.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "s", "editor",
         "s <palabra>",
         "Busca la palabra especificada en el archivo y muestra las líneas que la contienen.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "m",
@@ -196,7 +196,7 @@ Command commands[] = {
         "m",
         "Muestra metadatos del archivo actualmente abierto en memoria.",
         "fstat(2)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "y",
@@ -204,7 +204,7 @@ Command commands[] = {
         "y <n>",
         "Copia la línea n al portapapeles del editor.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "x",
@@ -212,7 +212,7 @@ Command commands[] = {
         "x <n>",
         "Pega la línea copiada en la posición n del archivo.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "qw",
@@ -220,7 +220,7 @@ Command commands[] = {
         "qw",
         "Cierra el editor y guarda todos los cambios realizados.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     },
     {
         "qd",
@@ -228,7 +228,7 @@ Command commands[] = {
         "qd",
         "Cierra el editor y descarta los cambios no guardados.",
         "printf(3)",
-        NULL
+        cmd_help_text_editor
     }
 };
 
