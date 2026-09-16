@@ -217,7 +217,7 @@ int te_load_file_into_nodes(editor_file_t *ef)
         }
     }
 
-    if (current_line->words != NULL || ef->lines == NULL)
+    if (current_line->words != NULL)
     {
         if (te_append_line_to_document(ef, current_line) < 0)
         {
