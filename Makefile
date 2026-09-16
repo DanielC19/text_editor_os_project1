@@ -23,4 +23,7 @@ output:
 clean:
 	rm -f $(ARCHSALIDA) $(OBJS)
 
-.PHONY: all clean
+test:
+	./tests/run_tests.sh
+
+.PHONY: all clean test
