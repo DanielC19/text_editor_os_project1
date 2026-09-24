@@ -112,3 +112,14 @@ El shell cuenta con una sección de ayuda dinámica muy completa. Puedes escribi
 * `help`: Muestra la bienvenida y el listado de categorías.
 * `help <categoria>`: Muestra todos los comandos pertenecientes a `datos`, `memoria`, `monitoreo` o `utilidades`.
 * `help <comando>`: Explica individualmente qué hace un comando, cómo se usa y qué llamadas al sistema específicas invoca.
+
+### Compresión Huffman en segundo plano
+
+Dentro de `editor <archivo>` también están disponibles estas operaciones:
+
+* `c <archivo.thf>`: toma una instantánea del documento y comienza su compresión Huffman concurrente en segundo plano.
+* `u <archivo.thf>`: descomprime el archivo indicado sobre el archivo abierto y recarga el documento en memoria al terminar.
+* `status`: muestra la operación activa y su progreso.
+* `wait`: espera la finalización de la tarea actual y muestra el resultado.
+
+La compresión usa bloques de 64 KiB, workers de `pthread` para el conteo y la codificación, y un formato autocontenido con la tabla global de frecuencias. Los bloques codificados se ensamblan en orden por el hilo coordinador. Mientras una tarea está activa, las operaciones que mutan, guardan o cierran el documento son rechazadas para evitar carreras.

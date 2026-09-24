@@ -12,4 +12,6 @@ printf 'Running basic editor tests...\n'
 "$TEST_DIR/test_editor.sh"
 printf 'Running edge-case tests...\n'
 "$TEST_DIR/test_edge_cases.sh"
+printf 'Running compression tests...\n'
+sh "$TEST_DIR/test_compression.sh"
 printf 'All tests passed.\n'

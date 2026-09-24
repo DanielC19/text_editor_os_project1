@@ -216,6 +216,38 @@ Command commands[] = {
         cmd_help_text_editor
     },
     {
+        "c",
+        "editor",
+        "c <archivo.thf>",
+        "Comprime el documento con Huffman concurrente en segundo plano.",
+        "pthread_create(3), open(2), read(2), write(2)",
+        cmd_help_text_editor
+    },
+    {
+        "u",
+        "editor",
+        "u <archivo.thf>",
+        "Descomprime un archivo Huffman en el documento abierto, en segundo plano.",
+        "pthread_create(3), open(2), read(2), write(2)",
+        cmd_help_text_editor
+    },
+    {
+        "status",
+        "editor",
+        "status",
+        "Muestra el progreso de la compresión o descompresión activa.",
+        "pthread_mutex_lock(3)",
+        cmd_help_text_editor
+    },
+    {
+        "wait",
+        "editor",
+        "wait",
+        "Espera la finalización de una tarea de compresión o descompresión.",
+        "pthread_join(3)",
+        cmd_help_text_editor
+    },
+    {
         "qw",
         "editor",
         "qw",
