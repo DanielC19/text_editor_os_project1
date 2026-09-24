@@ -30,6 +30,9 @@ int te_close(void)
 
 int te_open(const char *arg)
 {
+    if (te_editor_busy_error())
+        return -1;
+
     if (te_global_state.fd != -1)
         te_close();
 
@@ -62,6 +65,9 @@ int te_open(const char *arg)
 
 int te_save(void)
 {
+    if (te_editor_busy_error())
+        return -1;
+
     if (te_global_state.fd == -1)
     {
         printf("Error: No file currently open to save.\n");

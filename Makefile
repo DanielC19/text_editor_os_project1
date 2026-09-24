@@ -1,16 +1,17 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=gnu99 -g -D_GNU_SOURCE
+LDLIBS = -pthread
 ARCHSALIDA = sys_shell
 SRCS = main.c cat_datos.c cat_memoria.c cat_monitoreo.c cat_util.c cat_entrenamiento.c \
 	text_editor/te_state.c text_editor/te_memory.c text_editor/te_fileio.c \
-	text_editor/te_commands.c text_editor/te_parser.c
+	text_editor/te_commands.c text_editor/te_parser.c text_editor/te_compress.c
 OBJS = $(addprefix output/,$(SRCS:.c=.o))
 
 all: $(ARCHSALIDA)
 
 $(ARCHSALIDA): $(OBJS)
 	mkdir -p output
-	$(CC) $(CFLAGS) -o $(ARCHSALIDA) $(OBJS)
+	$(CC) $(CFLAGS) -o $(ARCHSALIDA) $(OBJS) $(LDLIBS)
 	./$(ARCHSALIDA)
 
 output/%.o: %.c shell.h | output

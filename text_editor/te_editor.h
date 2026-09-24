@@ -3,6 +3,7 @@
 
 #include "../shell.h"
 #include <stddef.h>
+#include <pthread.h>
 #include <sys/types.h>
 
 typedef struct word_node
@@ -28,12 +29,25 @@ typedef struct
 
 typedef struct
 {
+    pthread_mutex_t mutex;
+    pthread_t thread;
+    int thread_started;
+    int active;
+    int result;
+    size_t progress;
+    size_t total;
+    char operation[32];
+} te_background_state_t;
+
+typedef struct
+{
     line_node_t *last_copied;
 } clipboard_t;
 
 extern const editor_file_t te_initial_state;
 extern editor_file_t te_global_state;
 extern clipboard_t te_clipboard;
+extern te_background_state_t te_background;
 
 int te_is_stored_space_char(char c);
 word_node_t *te_word_create(const char *s);
@@ -58,6 +72,13 @@ int te_search(const char *word);
 int te_metadata(void);
 int te_copy(const char *arg);
 int te_paste(const char *arg);
+int te_start_compress(const char *output_path);
+int te_start_decompress(const char *input_path);
+int te_background_status(void);
+int te_background_busy(void);
+int te_background_join(void);
+int te_background_wait(void);
+int te_editor_busy_error(void);
 
 int te_parse_line_editor(const char *line);
 

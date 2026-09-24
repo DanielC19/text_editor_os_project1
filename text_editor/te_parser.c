@@ -142,6 +142,34 @@ int te_parse_line_editor(const char *line)
         arg[arg_len] = '\0';
         te_paste(arg[0] ? arg : NULL);
     }
+    else if (strcmp(cmd, "c") == 0 || strcmp(cmd, "compress") == 0)
+    {
+        i = te_skip_spaces(line, i);
+        te_copy_until_newline(arg, sizeof(arg), line + i);
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_start_compress(arg[0] ? arg : NULL);
+    }
+    else if (strcmp(cmd, "u") == 0 || strcmp(cmd, "decompress") == 0)
+    {
+        i = te_skip_spaces(line, i);
+        te_copy_until_newline(arg, sizeof(arg), line + i);
+        arg_len = 0;
+        while (arg[arg_len] != '\0' && arg[arg_len] != ' ' && arg[arg_len] != '\t')
+            arg_len++;
+        arg[arg_len] = '\0';
+        te_start_decompress(arg[0] ? arg : NULL);
+    }
+    else if (strcmp(cmd, "status") == 0)
+    {
+        te_background_status();
+    }
+    else if (strcmp(cmd, "wait") == 0)
+    {
+        te_background_wait();
+    }
     else
     {
         printf("Unknown command: %s\n", cmd);
